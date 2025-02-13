@@ -4,7 +4,7 @@ from django.contrib.auth.models import Group
 # Register your models here.
 
 class CustomUserAdmin(admin.ModelAdmin):
-    list_display= ('id', 'email', 'first_name', 'last_name', "phone_number",'role', 'password')
+    list_display= ('id', 'email', 'first_name', 'last_name', "phone_number",'role', "is_superuser")
     search_fields=('phone_number', 'email')
 
 

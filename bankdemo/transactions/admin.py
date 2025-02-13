@@ -3,6 +3,6 @@ from .models import TransactionsModel
 
 # Register your models here.
 class TransactionAdmin(admin.ModelAdmin):
-    list_display=['sender', "receiver", "transaction_type", "status", "amount", "timestamp"]
+    list_display=["id",'sender', "receiver", "transaction_type", "status", "amount", "timestamp"]
 
 admin.site.register(TransactionsModel, TransactionAdmin)

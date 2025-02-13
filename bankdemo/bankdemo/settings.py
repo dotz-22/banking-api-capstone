@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'users',
     'accounts',
     "transactions",
+    "support_ticket",
+    "reports"
 ]
 
 

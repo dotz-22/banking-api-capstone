@@ -11,9 +11,7 @@ from rest_framework_simplejwt.tokens import AccessToken
 
 class UserRegistrationView(APIView):
   permission_classes = [permissions.AllowAny]
-  def get(self, request):
-      return Response("working")
-
+ 
   def post(self, request):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():

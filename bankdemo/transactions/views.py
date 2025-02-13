@@ -4,36 +4,47 @@ from rest_framework import status, permissions
 from .serializers import TransactionSerializer
 from accounts.models import AccountModel
 from .models import TransactionsModel
-
+from users.permissions import IsAdminOrAccountOwner, IsCustomer, IsAdminUser, IsAccountOwner
 # Create your views here.
 
 class TrasanctionViews(APIView):
     
 
+    def get_permissions(self):
+        
+        if self.request.method in ["GET"]:
+            return [permissions.IsAuthenticated(), IsAdminOrAccountOwner()]  # Restrict GET to admins
+        return [IsAccountOwner()]  # Other methods are allowed for any authen
     
     def post(self, request):
-        # Pass `request.data` to the serializer
+       
         
         serializer = TransactionSerializer(data=request.data)
 
         amount= request.data.get('amount')
         transaction_type= request.data.get('transaction_type')
-        sender_id= request.data.get('sender')
-        receiver_id = request.data.get('receiver')
-       
+        sender= request.data.get('sender')
+        receiver = request.data.get('receiver')
         
+
+        account = AccountModel.objects.get(id=sender)
+        
+        self.check_object_permissions(self.request, account)
+
         if serializer.is_valid():
           
             if transaction_type == "transfer" :
 
-                  if not sender_id or not receiver_id:
+                  if not sender or not receiver:
                         return Response(
                             {"error": "Both sender and receiver accounts are required for a transfer."},
                             status=status.HTTP_400_BAD_REQUEST,
                         )
 
-                  sender_account= AccountModel.objects.get(id=sender_id)
-                  receiver_account= AccountModel.objects.get(id=receiver_id)
+                  sender_account= AccountModel.objects.get(id=sender)
+                  receiver_account= AccountModel.objects.get(id=receiver)
+
+                 
             
                   if sender_account.balance < amount:
                         return Response({'error': 'insufficient funds for this senders account'}, status=status.HTTP_400_BAD_REQUEST)
@@ -47,13 +58,13 @@ class TrasanctionViews(APIView):
 
             elif transaction_type == "withdrawal":
 
-                  if not sender_id:
+                  if not sender:
                         return Response(
                             {"error": "Sender account is required for a withdrawal."},
                             status=status.HTTP_400_BAD_REQUEST,
                         )
 
-                  sender_account= AccountModel.objects.get(id=sender_id)
+                  sender_account= AccountModel.objects.get(id=sender)
         
                 
                   if sender_account.balance < amount:
@@ -65,7 +76,7 @@ class TrasanctionViews(APIView):
 
             elif  transaction_type == "deposit":
                   
-                  receiver_account= AccountModel.objects.get(id=receiver_id)
+                  receiver_account= AccountModel.objects.get(id=receiver)
 
                   receiver_account.balance += amount
                  
@@ -85,12 +96,17 @@ class TrasanctionViews(APIView):
       if id:
             try:
              transaction1 = TransactionsModel.objects.get(id=id)
+             account1 =transaction1.sender
+             account2 =transaction1.receiver
+             self.check_object_permissions(self.request, account1 or account2)
+
              serialized = TransactionSerializer(transaction1)
              return Response({"message": "here are details about", "details" : serialized.data })
             except AccountModel.DoesNotExist :
-                return Response('book not in database', status=status.HTTP_404_NOT_FOUND)
+                return Response('transaction not in database', status=status.HTTP_404_NOT_FOUND)
          
-
+      if not request.user.role == 'admin':  
+            return Response({'error': 'You do not have permission to view all transactions'}, status=status.HTTP_403_FORBIDDEN)
       transactions = TransactionsModel.objects.all()
       serializer = TransactionSerializer(transactions, many=True)
       return Response({"message": "accounts Get request successful", "data" : serializer.data})

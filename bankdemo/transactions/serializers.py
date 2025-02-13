@@ -12,6 +12,7 @@ class TransactionSerializer(serializers.ModelSerializer):
             receiver_account = data.get('receiver')
 
             if transaction_type == 'withdrawal' and receiver_account is not None:
+                
                 raise serializers.ValidationError("Receiver account must be null for withdrawal transactions.")
 
             if transaction_type == 'deposit' and sender_account is not None:
