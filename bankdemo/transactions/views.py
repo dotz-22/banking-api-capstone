@@ -4,7 +4,7 @@ from rest_framework import status, permissions
 from .serializers import TransactionSerializer
 from accounts.models import AccountModel
 from .models import TransactionsModel
-from users.permissions import IsAdminOrAccountOwner, IsCustomer, IsAdminUser, IsAccountOwner
+from users.permissions import IsAdminOrAccountOwner, IsAccountOwner
 # Create your views here.
 
 class TrasanctionViews(APIView):
@@ -14,46 +14,56 @@ class TrasanctionViews(APIView):
         
         if self.request.method in ["GET"]:
             return [permissions.IsAuthenticated(), IsAdminOrAccountOwner()]  # Restrict GET to admins
-        return [IsAccountOwner()]  # Other methods are allowed for any authen
+        return [IsAccountOwner()]  # Other methods are allowed for account owner
     
     def post(self, request):
        
         
         serializer = TransactionSerializer(data=request.data)
+        user = request.user
+        try:
+            sender = AccountModel.objects.get(user=user)
+        except AccountModel.DoesNotExist:
+            return Response({"error": "Sender account not found."}, status=status.HTTP_400_BAD_REQUEST)
 
-        amount= request.data.get('amount')
+       
+        try:
+            amount = request.data.get('amount', 0)
+        except ValueError:
+            return Response({"error": "Invalid amount provided."}, status=status.HTTP_400_BAD_REQUEST)
+        
         transaction_type= request.data.get('transaction_type')
-        sender= request.data.get('sender')
-        receiver = request.data.get('receiver')
-        
 
-        account = AccountModel.objects.get(id=sender)
-        
-        self.check_object_permissions(self.request, account)
+        self.check_object_permissions(self.request, sender)
 
         if serializer.is_valid():
+
+            transaction = serializer.save(sender=sender)
           
             if transaction_type == "transfer" :
+                  
+                  receiver = str(request.data.get('receiver'))
+                  try:
+                   receiver_account= AccountModel.objects.get(account_number=receiver)
+                  except AccountModel.DoesNotExist:
+                      return Response({"error": "receiver account not found, please confirm receiver account"}, status=status.HTTP_404_NOT_FOUND)
 
                   if not sender or not receiver:
                         return Response(
                             {"error": "Both sender and receiver accounts are required for a transfer."},
-                            status=status.HTTP_400_BAD_REQUEST,
-                        )
+                            status=status.HTTP_400_BAD_REQUEST,)
 
-                  sender_account= AccountModel.objects.get(id=sender)
-                  receiver_account= AccountModel.objects.get(id=receiver)
-
-                 
-            
-                  if sender_account.balance < amount:
-                        return Response({'error': 'insufficient funds for this senders account'}, status=status.HTTP_400_BAD_REQUEST)
+                  if sender.balance < amount:
+                        transaction.status= "failed"
+                        transaction.save()
+                        return Response({'error': 'insufficient funds for this senders account'}, 
+                        status=status.HTTP_400_BAD_REQUEST)
                         
                         # carry out the transactions
-                  sender_account.balance -= amount
+                  sender.balance -= amount
                   receiver_account.balance += amount
                   # save new balance
-                  sender_account.save()
+                  sender.save()
                   receiver_account.save()
 
             elif transaction_type == "withdrawal":
@@ -63,30 +73,26 @@ class TrasanctionViews(APIView):
                             {"error": "Sender account is required for a withdrawal."},
                             status=status.HTTP_400_BAD_REQUEST,
                         )
-
-                  sender_account= AccountModel.objects.get(id=sender)
-        
                 
-                  if sender_account.balance < amount:
+                  if sender.balance < amount:
+                        
+                        transaction.status="failed"
+                        transaction.save()
                         return Response({'error': 'insufficient funds for this senders account'}, status=status.HTTP_400_BAD_REQUEST)
                   
-                  sender_account.balance -= amount
-                 
-                  sender_account.save()
+                  sender.balance -= amount
+                  sender.save()
 
             elif  transaction_type == "deposit":
                   
-                  receiver_account= AccountModel.objects.get(id=receiver)
-
-                  receiver_account.balance += amount
-                 
-
-                  receiver_account.save()
+                  sender.balance += amount
+                  sender.save()
               # Save the valid transaction data
             
-            receipt = serializer.save()
-            receipt.status = 'succesfull'
-            receipt.save()
+            
+            
+            transaction.status = 'succesfull'
+            transaction.save()
             return Response({"transaction_type":transaction_type , "message":' successful'} ,status=status.HTTP_201_CREATED)
       
         # Return errors if serializer validation fails

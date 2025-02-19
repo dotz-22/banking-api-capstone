@@ -38,7 +38,7 @@ class AccountsView(APIView):
                 account = AccountModel.objects.get(id=id)
                 self.check_object_permissions(self.request, account)
                 serialized1 = AccountSerializer(account)
-                return Response({"message": "here are details about", "details" : serialized1.data })
+                return Response({"message": "here are the account details", "details" : serialized1.data })
             
             except AccountModel.DoesNotExist :
                 return Response('account not in database', status=status.HTTP_404_NOT_FOUND)
