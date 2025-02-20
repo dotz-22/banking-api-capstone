@@ -64,7 +64,8 @@ class AccountsView(APIView):
         if serialized.is_valid():
             serialized.save()
             return Response ("account updated successfully", status=status.HTTP_202_ACCEPTED)
-        
+        else :
+            return Response ("invalid update entry", status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, id):
         

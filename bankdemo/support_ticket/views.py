@@ -20,17 +20,20 @@ class SupportView(APIView):
         
 
     def post (self, request):
+        user = request.user
         serialized = SupportSerializer(data=request.data)
+        
         if serialized.is_valid():
-            serialized.save()
+            
+            serialized.save(user=user)
             return Response ("ticket created succesfully", status=status.HTTP_201_CREATED)
         return Response(serialized.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def get (self, request, id=None):
         if id :
             try:
-              self.check_object_permissions(self.request, support_ticket)
               support_ticket = SupportModel.objects.get(id=id)
+              self.check_object_permissions(self.request, support_ticket)
               serialized= SupportSerializer(support_ticket)
               return Response({"ticket": serialized.data})
             except SupportModel.DoesNotExist:

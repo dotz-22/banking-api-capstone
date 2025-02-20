@@ -9,7 +9,7 @@ class SupportModel (models.Model):
               ("resolved", "Resolved")
               )
 
-    user = models.ForeignKey('users.NewUser', on_delete= models.CASCADE)
+    user = models.ForeignKey('users.NewUser', on_delete= models.CASCADE, blank= True, null= True)
     subject = models.CharField(max_length= 70)
     description=models.TextField() 
     status = models.CharField(max_length= 20, choices=Status, blank=False, null=False, default="open")

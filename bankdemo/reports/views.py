@@ -14,8 +14,11 @@ class ReportListView(APIView):
    
 
     def post(self, request):
+        user = request.user
         serializer = ReportSerializer(data=request.data)
+
         if serializer.is_valid():
+            serializer.save(generated_by=user)
             # Generate report dynamically based on report_type and data
             report_type = serializer.validated_data['report_type']
             report_data = serializer.validated_data['data']
@@ -41,7 +44,7 @@ class ReportListView(APIView):
                 # account= AccountModel.objects.get(account_number=account_number)
                 transactions = TransactionsModel.objects.filter(
                     sender__account_number = account_number)|TransactionsModel.objects.filter(
-                        receiver__account_number = account_number)
+                        receiver = account_number)
                 #
 
                 report_data['total_transactions'] = transactions.count()

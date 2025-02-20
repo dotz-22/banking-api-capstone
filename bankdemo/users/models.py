@@ -15,7 +15,7 @@ class NewUser(AbstractUser):
         last_name= models.CharField(max_length=250)
         email = models.EmailField(unique=True)
         phone_number= models.CharField(max_length=11, null=True, unique=True, blank=True)
-        role = models.CharField(max_length=40, choices=ROLE, blank=False, null=False, default='customer')
+        role = models.CharField(max_length=40, choices=ROLE, blank=True, null=True, default='customer')
 
         
         USERNAME_FIELD = 'email'
