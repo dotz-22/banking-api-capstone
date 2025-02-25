@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta 
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,7 +27,7 @@ SECRET_KEY = 'django-insecure-$ivejq)74(n1yne0gonb&&rp*xcs+^f2#2o9uf-gv*03#j7%uw
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -44,6 +45,7 @@ INSTALLED_APPS = [
     "transactions",
     "support_ticket",
     "reports"
+    "corsheaders"
 ]
 
 
@@ -56,9 +58,19 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+        "corsheaders.middleware.CorsMiddleware",
+    
+    
 ]
 
 ROOT_URLCONF = 'bankdemo.urls'
+
+CORS_ALLOWED_ORIGINS = [
+    "https://hng-stage1-fdsh.onrender.com",  # Replace with the actual frontend domain CORS allowed origins
+    "http://127.0.0.1:8000",     
+]
+
+CORS_ALLOW_CREDENTIALS = True
 
 TEMPLATES = [
     {
@@ -151,4 +163,26 @@ SIMPLE_JWT ={
     'ALGORITHM':'HS256', # the algorithm used bto sign the token
     'SIGNING_KEY': SECRET_KEY, # your django secret key to sign the token
     'AUTH_HEADER_TYPES': ('Bearer',) # the type of authorization header
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'django_errors.log'),
+        },
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file', 'console'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    },
 }
