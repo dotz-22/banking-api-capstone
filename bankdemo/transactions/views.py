@@ -46,6 +46,8 @@ class TrasanctionViews(APIView):
                   try:
                    receiver_account= AccountModel.objects.get(account_number=receiver)
                   except AccountModel.DoesNotExist:
+                      transaction.status= "failed"
+                      transaction.save()
                       return Response({"error": "receiver account not found, please confirm receiver account"}, status=status.HTTP_404_NOT_FOUND)
 
                   if not sender or not receiver:
