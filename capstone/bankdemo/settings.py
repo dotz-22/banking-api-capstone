@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     "transactions",
     "support_ticket",
     "reports",
-    "corsheaders",
+    "capstone.corsheaders",
 ]
 
 
