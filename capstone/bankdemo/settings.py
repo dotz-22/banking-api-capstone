@@ -40,11 +40,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'users',
-    'accounts',
-    "transactions",
-    "support_ticket",
-    "reports",
+    'capstone.users',
+    'capstone.accounts',
+    "capstone.transactions",
+    "capstone.support_ticket",
+    "capstone.reports",
     "corsheaders",
 ]
 
