@@ -14,7 +14,7 @@ class TransactionsModel(models.Model):
                        ('deposit', 'Deposit'))
 
 
-    sender=models.ForeignKey('capstone.accounts.AccountModel', on_delete=models.CASCADE,  related_name='sender', null=True, blank=True )
+    sender=models.ForeignKey(AccountModel, on_delete=models.CASCADE,  related_name='sender', null=True, blank=True )
     receiver=models.CharField( max_length=10, null=True, blank=True )
     amount=models.FloatField(validators=[MinValueValidator(1)])
     transaction_type=models.CharField(max_length=40, choices=Transaction_type
