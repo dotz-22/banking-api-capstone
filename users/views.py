@@ -7,7 +7,9 @@ from rest_framework_simplejwt.tokens import AccessToken
 
 
 # Create your views here.
-
+class home (APIView):
+   def get (self, request):
+       return Response ("banking api ")
 
 class UserRegistrationView(APIView):
   permission_classes = [permissions.AllowAny]
